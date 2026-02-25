@@ -64,7 +64,7 @@ async function mainLogic() {
 
             // Extract file name and code
             const pInnerText = rows.nth(idx).locator("p").last();
-            const fileName = (await pInnerText.innerText()).replace("ԵՐԵՎԱՆԻ ՔԱՂԱՔԱՊԵՏ ՈՐՈՇՈՒՄ", "").trim().replace("\n", " ")
+            const fileName = (await pInnerText.innerText()).replace("ԵՐԵՎԱՆԻ ՔԱՂԱՔԱՊԵՏ ՈՐՈՇՈՒՄ", "");
             const rawCodeFromFileName = fileName.slice(0, 3);
 
             // Go to doc page
@@ -97,7 +97,7 @@ async function mainLogic() {
                   
             if (!aChildCount) {
               await newPage.pdf({
-                path: `${filePath}/${fileName.slice(0, 220).replace(/[\/\\]/g, '-')}.pdf`,
+                path: `${filePath}/${sanitizeForFileName(fileName)}.pdf`,
                 format: 'A4',          
                 printBackground: true, 
                 margin: { top: '12mm', right: '12mm', bottom: '12mm', left: '12mm' },
@@ -118,7 +118,7 @@ async function mainLogic() {
               const fileUrl = cleanPart ? `${baseURL}/uploads/${cleanPart}` : `${baseURL}${ahref}`;
               const fileUrlArr = fileUrl.split(".")
               const innerText = await a.innerText();
-              let name = innerText.slice(0, 220).replace(/[\/\\]/g, '-').trim();
+              let name = sanitizeForFileName(innerText);
               if (!name.includes(code)) {
                 name = `${code}_Հավելված_${appendix}`;
                 appendix++;
@@ -172,4 +172,13 @@ async function downloadWithRetry(page, fileUrl, dirPath, name, ext, retries = 4)
   }
 
   throw lastErr;
+}
+
+function sanitizeForFileName(text) {
+  return text
+    .replace(/\r?\n/g, ' ')
+    .replace(/[\/\\?%*:|"<>]/g, '-') // prevent folder creation
+    .replace(/\s+/g, ' ')
+    .slice(0, 220)
+    .trim();
 }
