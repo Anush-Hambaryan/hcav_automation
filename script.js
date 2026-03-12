@@ -3,7 +3,7 @@ const { chromium, errors } = require('playwright');
 const path = require('path');
 
 const downloadDir = '/Users/anushhambaryan/Documents/hcav_automation.nosync/test';
-const baseURL = "https://docs.ejmiatsin.am/Pages/DocFlow/Default.aspx";
+const baseURL = "https://cmis.vanadzor.am/Pages/DocFlow/Default.aspx";
 const type = "Voroshum" // "Voroshum" for mayor, "CouncilorDecision" for city council
 const years = ["2026", "2025", "2024", "2023"];
 let pageIndex = parseInt(process.argv[2]) || 1;
@@ -60,7 +60,7 @@ async function mainLogic() {
           const cells = row.locator('td');
 
           // Extract name, doc code, and year text
-          const name = (await cells.nth(2).innerText()).replace(/[\/\\]+/g, '-').slice(0, 220)
+          const name = sanitizeForFileName(await cells.nth(2).innerText())
           const docCode = (await cells.nth(0).innerText()).trim()
           const yearText = (await cells.nth(1).innerText()).trim();
 
@@ -166,4 +166,13 @@ async function downloadAppendix(page, docCode, yearText, downloadDir) {
       await download.saveAs(finalPath);
     }
     page.close();
+}
+
+function sanitizeForFileName(text) {
+  return text
+    .replace(/\r?\n/g, ' ')
+    .replace(/[\/\\?%*:|"<>]/g, '-') // prevent folder creation
+    .replace(/\s+/g, ' ')
+    .slice(0, 220)
+    .trim();
 }
