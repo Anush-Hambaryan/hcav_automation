@@ -97,7 +97,13 @@ async function downloadFile (page, downloadDir, docCode, name, yearText) {
     const printButton = page.locator('input[type="image"][title*="պել"][title*="րոշում"]:not([title*="աղվածք"])').first();
     // const printButton = page.locator('#ctl00_ContentPlaceHolder1_ctl01_ctl00_btn');
 
-    await printButton.waitFor({ state: 'visible', timeout: 3000 });
+    try {
+      await printButton.waitFor({ state: 'visible', timeout: 5000 });
+    } catch {
+      const noPerm = page.getByText("Դուք չունեք համապատասխան իրավասություններ")
+      await noPerm.waitFor({ timeout: 5000 });
+      return;
+    }
 
     // Click the print button and wait for the popup
     const popupPromise = page.waitForEvent('popup');
